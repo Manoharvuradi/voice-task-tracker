@@ -6,12 +6,15 @@ import VoiceInputButton from './components/VoiceInputButton';
 import VoiceReviewModal from './components/VoiceReviewModal';
 import axios from 'axios';
 import FilterBar from './components/FilterBar';
+import EditTaskModal from './components/EditTaskModal';
 
 export default function App() {
   const [tasks, setTasks] = useState([]);
   const [voiceData, setVoiceData] = useState(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [editTask, setEditTask] = useState(null);
+
 
   const fetchTasks = async () => {
     const data = await getTasks();
@@ -54,7 +57,12 @@ export default function App() {
     return matchesSearch && matchesStatus;
   });
 
-  console.log("Filtered Tasks:", filteredTasks);
+  const openEdit = (task) => setEditTask(task);
+
+  const onDelete = async (id) => {
+    await axios.delete(`${import.meta.env.VITE_API_URL}/tasks/${id}`);
+    setTasks(prev => prev.filter(t => t._id !== id));
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -74,7 +82,7 @@ export default function App() {
         </div>
 
         {/* Task Board */}
-        <section className="flex-1">
+        <section className="flex-1 space-y-4">
           <FilterBar
             search={search}
             setSearch={setSearch}
@@ -82,7 +90,12 @@ export default function App() {
             setStatus={setStatusFilter}
           />
 
-          <TaskBoard tasks={filteredTasks} onUpdate={onUpdate} />
+          <TaskBoard
+            tasks={filteredTasks}
+            onUpdate={onUpdate}
+            openEdit={openEdit}
+            onDelete={onDelete}
+          />
         </section>
 
       </main>
@@ -96,6 +109,16 @@ export default function App() {
             const created = await createTask(task);
             setTasks(prev => [created, ...prev]);
             setVoiceData(null);
+          }}
+        />
+      )}
+      {editTask && (
+        <EditTaskModal
+          task={editTask}
+          onClose={() => setEditTask(null)}
+          onSave={async (updated) => {
+            await onUpdate(editTask._id, updated);
+            setEditTask(null);
           }}
         />
       )}
