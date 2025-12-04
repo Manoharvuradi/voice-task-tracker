@@ -54,5 +54,6 @@ npm install
 
 ## Create env file
 VITE_API_URL=http://localhost:4000/api
+
 npm run dev
 http://localhost:5173
